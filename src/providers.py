@@ -1,66 +1,35 @@
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 def fetch_linkareer():
     url = "https://linkareer.com/contest"
-    resp = requests.get(url)
-    soup = BeautifulSoup(resp.text, "html.parser")
-
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
     contests = []
-    for div in soup.select(".contest-item"):
+
+    for item in soup.select(".contest-item"):
+        title = item.select_one(".contest-title").get_text(strip=True)
+        link = item.select_one("a")["href"]
+        site = "Linkareer"
+        start_date = None
+        end_date = None
+
         contests.append({
-            "title": div.select_one(".title").get_text(strip=True),
-            "url": div.select_one("a")["href"],
-            "site": "Linkareer",
-            "start_date": None,
-            "end_date": None
+            "title": title,
+            "url": link,
+            "site": site,
+            "start_date": start_date,
+            "end_date": end_date
         })
+
+    print(f"[INFO] fetch_linkareer fetched {len(contests)} items")
     return contests
 
 def fetch_singood():
-    url = "https://www.singood.com/contest"
-    resp = requests.get(url)
-    soup = BeautifulSoup(resp.text, "html.parser")
-
+    url = "https://www.singood.co.kr/contest"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
     contests = []
-    for div in soup.select(".contest-item"):
-        contests.append({
-            "title": div.select_one(".title").get_text(strip=True),
-            "url": div.select_one("a")["href"],
-            "site": "Singood",
-            "start_date": None,
-            "end_date": None
-        })
-    return contests
 
-def fetch_campuspick():
-    url = "https://www.campuspick.com/contest"
-    resp = requests.get(url)
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    contests = []
-    for div in soup.select(".contest-item"):
-        contests.append({
-            "title": div.select_one(".title").get_text(strip=True),
-            "url": div.select_one("a")["href"],
-            "site": "CampusPick",
-            "start_date": None,
-            "end_date": None
-        })
-    return contests
-
-def fetch_wibity():
-    url = "https://www.wibity.com/contest"
-    resp = requests.get(url)
-    soup = BeautifulSoup(resp.text, "html.parser")
-
-    contests = []
-    for div in soup.select(".contest-item"):
-        contests.append({
-            "title": div.select_one(".title").get_text(strip=True),
-            "url": div.select_one("a")["href"],
-            "site": "Wibity",
-            "start_date": None,
-            "end_date": None
-        })
-    return contests
+    for item in soup.select(".contest-
