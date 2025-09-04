@@ -3,6 +3,7 @@ import json
 import requests
 from .utils import JSON_PATH
 
+# GitHub Secrets에서 가져옴
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 NOTION_DB_ID = os.getenv("NOTION_DB_ID")
 
@@ -13,11 +14,11 @@ headers = {
 }
 
 def query_existing_pages():
-    """기존 DB 페이지의 URL을 가져와서 중복 방지"""
+    """이미 Notion에 등록된 URL 수집"""
     url = f"https://api.notion.com/v1/databases/{NOTION_DB_ID}/query"
     existing_urls = set()
-    has_more = True
     payload = {}
+    has_more = True
     while has_more:
         r = requests.post(url, headers=headers, json=payload)
         r.raise_for_status()
@@ -33,6 +34,7 @@ def query_existing_pages():
     return existing_urls
 
 def create_page(item):
+    """Notion DB에 신규 페이지 생성"""
     url = "https://api.notion.com/v1/pages"
     data = {
         "parent": {"database_id": NOTION_DB_ID},
@@ -42,14 +44,15 @@ def create_page(item):
             "URL": {"url": item["url"]},
         }
     }
+    # 날짜 컬럼 추가 (있으면)
     if item.get("start_date"):
         data["properties"]["Start Date"] = {"date": {"start": item["start_date"]}}
     if item.get("end_date"):
         data["properties"]["End Date"] = {"date": {"start": item["end_date"]}}
 
-    r = requests.post(url, headers=headers, data=json.dumps(data))
+    r = requests.post(url, headers=headers, json=data)
     if r.status_code != 200:
-        print("[ERROR]", r.text)
+        print("[ERROR] Failed to add to Notion:", r.text)
     else:
         print(f"[OK] Added to Notion: {item['title']}")
 
