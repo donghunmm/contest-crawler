@@ -37,7 +37,7 @@ def create_page(item):
         "parent": {"database_id": NOTION_DB_ID},
         "properties": {
             "Title": {"title": [{"text": {"content": item["title"]}}]},
-            "Site": {"rich_text": [{"text": {"content": item.get("site","")}}]},
+            "Site": {"rich_text": [{"text": {"content": item.get("site", "")}}]},
             "URL": {"url": item["url"]},
         }
     }
