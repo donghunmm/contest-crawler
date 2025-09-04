@@ -3,7 +3,6 @@ import json
 import requests
 from .utils import JSON_PATH
 
-# GitHub Secrets에서 가져옴
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 NOTION_DB_ID = os.getenv("NOTION_DB_ID")
 
@@ -14,7 +13,6 @@ headers = {
 }
 
 def query_existing_pages():
-    """이미 Notion에 등록된 URL 수집"""
     url = f"https://api.notion.com/v1/databases/{NOTION_DB_ID}/query"
     existing_urls = set()
     payload = {}
@@ -34,17 +32,15 @@ def query_existing_pages():
     return existing_urls
 
 def create_page(item):
-    """Notion DB에 신규 페이지 생성"""
     url = "https://api.notion.com/v1/pages"
     data = {
         "parent": {"database_id": NOTION_DB_ID},
         "properties": {
             "Title": {"title": [{"text": {"content": item["title"]}}]},
-            "Site": {"rich_text": [{"text": {"content": item.get("site", "")}}]},
+            "Site": {"rich_text": [{"text": {"content": item.get("site","")}}]},
             "URL": {"url": item["url"]},
         }
     }
-    # 날짜 컬럼 추가 (있으면)
     if item.get("start_date"):
         data["properties"]["Start Date"] = {"date": {"start": item["start_date"]}}
     if item.get("end_date"):
