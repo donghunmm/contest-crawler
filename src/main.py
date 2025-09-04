@@ -6,9 +6,7 @@ from . import providers
 
 PROVIDERS = [
     providers.fetch_linkareer,
-    providers.fetch_singood,
     providers.fetch_campuspick,
-    providers.fetch_wibity
 ]
 
 def filter_by_keywords(contests):
