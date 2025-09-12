@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "title": "2025 AI 공모전 테스트",
+    "url": "https://example.com/ai-contest",
+    "site": "TestSite",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "title": "SW 개발 공모전 테스트",
+    "url": "https://example.com/sw-contest",
+    "site": "TestSite",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "title": "일반 공모전 테스트",
+    "url": "https://example.com/general-contest",
+    "site": "TestSite",
+    "start_date": null,
+    "end_date": null
+  }
+]

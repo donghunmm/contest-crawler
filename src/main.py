@@ -6,11 +6,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils import DATA_DIR, CSV_PATH, JSON_PATH, KEYWORDS
 import providers
+import test_providers
 
 PROVIDERS = [
+    test_providers.fetch_test_data,  # 테스트용 데이터
     providers.fetch_wevity,
-    providers.fetch_onbid,
+    providers.fetch_gongmo,
     providers.fetch_contestkorea,
+    # providers.fetch_onbid,  # 접근 불가로 비활성화
     # providers.fetch_all_contest,  # 도메인 접근 불가로 비활성화
     # providers.fetch_thinkcontest,  # JavaScript 렌더링 필요로 비활성화
     # providers.fetch_linkareer,  # 현재 서버 문제로 비활성화

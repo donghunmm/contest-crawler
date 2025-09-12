@@ -109,13 +109,13 @@ def fetch_thinkcontest():
     print("[WARNING] ThinkContest requires JavaScript rendering, currently unavailable")
     return []
 
-def fetch_onbid():
-    """온비드 공모전 크롤링"""
-    url = "https://www.onbid.co.kr/op/ctt/cttList.do"
+def fetch_gongmo():
+    """공모전 대한민국 크롤링"""
+    url = "https://www.gongmo.co.kr/"
     
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "ko-KR,ko;q=0.8,en-US;q=0.5",
         }
@@ -126,40 +126,62 @@ def fetch_onbid():
         soup = BeautifulSoup(response.text, "html.parser")
         contests = []
 
-        # 온비드의 공모전 목록 구조
-        contest_items = soup.select("tbody tr") or soup.select(".list tr") or soup.select("table tr")
+        # 공모전 대한민국의 목록 구조
+        selectors = [
+            ".list-group-item",
+            ".contest-item", 
+            ".item",
+            "li a",
+            "table tr a"
+        ]
         
-        for item in contest_items:
-            try:
-                # 제목과 링크 찾기
-                title_el = item.select_one("a") or item.select_one("td a")
-                if not title_el:
-                    continue
-                    
-                title = title_el.get_text(strip=True)
-                link = title_el.get("href", "")
+        for selector in selectors:
+            items = soup.select(selector)
+            if items:
+                print(f"[DEBUG] Found {len(items)} items with selector: {selector}")
                 
-                if link and not link.startswith("http"):
-                    link = "https://www.onbid.co.kr" + link
+                for item in items[:20]:  # 최대 20개만 처리
+                    try:
+                        if item.name == 'a':
+                            title = item.get_text(strip=True)
+                            link = item.get("href", "")
+                        else:
+                            link_el = item.select_one("a")
+                            if not link_el:
+                                continue
+                            title = link_el.get_text(strip=True)
+                            link = link_el.get("href", "")
+                        
+                        if link and not link.startswith("http"):
+                            link = "https://www.gongmo.co.kr" + link
+                        
+                        # 공모전 관련 키워드가 포함된 것만
+                        if (title and link and len(title) > 5 and 
+                            any(keyword in title for keyword in ['공모전', '대회', '콘테스트', '경진대회', 'AI', 'SW', '소프트웨어'])):
+                            contests.append({
+                                "title": title,
+                                "url": link,
+                                "site": "공모전대한민국",
+                                "start_date": None,
+                                "end_date": None
+                            })
+                    except Exception as e:
+                        continue
                 
-                # 공모전 관련 키워드가 포함된 것만
-                if title and link and len(title) > 5 and any(keyword in title for keyword in ['공모전', '대회', '콘테스트', '경진대회']):
-                    contests.append({
-                        "title": title,
-                        "url": link,
-                        "site": "OnBid",
-                        "start_date": None,
-                        "end_date": None
-                    })
-            except Exception as e:
-                continue
+                if contests:
+                    break
 
-        print(f"[INFO] fetch_onbid fetched {len(contests)} items")
+        print(f"[INFO] fetch_gongmo fetched {len(contests)} items")
         return contests
         
     except Exception as e:
-        print(f"[ERROR] fetch_onbid failed: {e}")
+        print(f"[ERROR] fetch_gongmo failed: {e}")
         return []
+
+def fetch_onbid():
+    """온비드 공모전 크롤링 - 현재 접근 불가로 비활성화"""
+    print("[WARNING] OnBid is currently unavailable")
+    return []
 
 def fetch_all_contest():
     """올콘테스트 공모전 크롤링 - 현재 도메인 접근 불가로 비활성화"""
@@ -168,7 +190,7 @@ def fetch_all_contest():
 
 def fetch_contestkorea():
     """컨테스트코리아 공모전 크롤링"""
-    url = "http://www.contestkorea.com/sub/list.php"
+    url = "http://www.contestkorea.com/sub/list.php?int_gbn=1"  # 전체 공모전 현황
     
     try:
         headers = {
@@ -191,14 +213,18 @@ def fetch_contestkorea():
                 title = title_el.get_text(strip=True)
                 link = title_el.get("href", "")
                 
-                # FAQ나 가이드 페이지 제외
-                if any(exclude in title.lower() for exclude in ['faq', '가이드', '질문', '답변', '세금', '생활기록부', '입상하지 못한']):
+                # FAQ나 가이드 페이지, 질문 페이지 제외
+                exclude_keywords = ['faq', '가이드', '질문', '답변', '세금', '생활기록부', '입상하지 못한', 
+                                  '유용한 툴', '첨부파일', '서 명', '동의서', '스캔방법']
+                if any(exclude in title.lower() for exclude in exclude_keywords):
                     continue
                 
                 if link and not link.startswith("http"):
                     link = "http://www.contestkorea.com" + link
                 
-                if title and link and len(title) > 5:
+                # 실제 공모전인지 확인 (제목에 공모전 관련 키워드 포함)
+                if (title and link and len(title) > 5 and 
+                    any(keyword in title for keyword in ['공모전', '대회', '콘테스트', '경진대회', '공모', '대상'])):
                     contests.append({
                         "title": title,
                         "url": link,
