@@ -1,0 +1,111 @@
+name: Daily Contest Crawler
+
+on:
+  schedule:
+    # 매일 오전 9시 (UTC 0시, 한국시간 오전 9시)에 실행
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  crawl-and-notify:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run crawler
+      run: |
+        python src/main.py
+        
+    - name: Check if data exists
+      id: check_data
+      run: |
+        if [ -f "data/contests.json" ] && [ -s "data/contests.json" ]; then
+          echo "data_exists=true" >> $GITHUB_OUTPUT
+          echo "contest_count=$(python -c "import json; data=json.load(open('data/contests.json')); print(len(data))")" >> $GITHUB_OUTPUT
+        else
+          echo "data_exists=false" >> $GITHUB_OUTPUT
+          echo "contest_count=0" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Prepare email content
+      if: steps.check_data.outputs.data_exists == 'true'
+      run: |
+        python -c "
+import json
+import os
+from datetime import datetime
+
+# JSON 데이터 읽기
+with open('data/contests.json', 'r', encoding='utf-8') as f:
+    contests = json.load(f)
+
+# 이메일 내용 생성
+email_content = f'''
+📢 공모전 크롤링 결과 - {datetime.now().strftime('%Y년 %m월 %d일')}
+
+총 {len(contests)}개의 공모전이 발견되었습니다.
+
+🏆 발견된 공모전 목록:
+'''
+
+for i, contest in enumerate(contests, 1):
+    email_content += f'''
+{i}. {contest['title']}
+   🔗 링크: {contest['url']}
+   📍 사이트: {contest['site']}
+   
+'''
+
+email_content += '''
+---
+이 메일은 GitHub Actions를 통해 자동으로 발송되었습니다.
+'''
+
+# 파일로 저장
+with open('email_content.txt', 'w', encoding='utf-8') as f:
+    f.write(email_content)
+"
+        
+    - name: Send email notification
+      if: steps.check_data.outputs.data_exists == 'true'
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "🎯 공모전 크롤링 결과 (${{ steps.check_data.outputs.contest_count }}개 발견)"
+        to: ${{ secrets.EMAIL_TO }}
+        from: ${{ secrets.EMAIL_USERNAME }}
+        body: file://email_content.txt
+        
+    - name: Upload artifacts
+      if: steps.check_data.outputs.data_exists == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: contest-data-${{ github.run_number }}
+        path: |
+          data/contests.json
+          data/contests.csv
+        retention-days: 30
+        
+    - name: Commit and push results
+      if: steps.check_data.outputs.data_exists == 'true'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/
+        git commit -m "Update contest data - $(date +'%Y-%m-%d %H:%M:%S')" || exit 0
+        git push || exit 0

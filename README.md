@@ -51,11 +51,26 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-### GitHub Actions
+### GitHub Actions 설정
 
-이 프로젝트는 GitHub Actions를 통해 매일 자동으로 실행됩니다:
-- **스케줄**: 매일 오전 9시 (KST)
-- **수동 실행**: GitHub Actions 탭에서 수동 실행 가능
+#### 1. Repository Secrets 설정
+Settings > Secrets and variables > Actions에서 다음 시크릿을 설정하세요:
+
+```
+EMAIL_USERNAME: 발송용 Gmail 주소 (예: your-email@gmail.com)
+EMAIL_PASSWORD: Gmail 앱 비밀번호
+EMAIL_TO: 수신할 이메일 주소 (예: recipient@gmail.com)
+```
+
+#### 2. Gmail 앱 비밀번호 생성
+1. Google 계정 > 보안 > 2단계 인증 활성화
+2. 앱 비밀번호 생성 (16자리 코드)
+3. 생성된 비밀번호를 `EMAIL_PASSWORD`에 설정
+
+#### 3. 자동 실행
+- **스케줄**: 매일 오전 9시 (한국시간)
+- **수동 실행**: GitHub Actions 탭에서 "Run workflow" 버튼으로 수동 실행 가능
+- **이메일 알림**: 새로운 공모전이 발견되면 자동으로 이메일 발송
 - **자동 커밋**: 새로운 데이터가 있으면 자동으로 커밋 및 푸시
 
 ## 📁 파일 구조
