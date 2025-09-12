@@ -1,12 +1,19 @@
 import json
 import pandas as pd
 import os
-from .utils import DATA_DIR, CSV_PATH, JSON_PATH, KEYWORDS
-from . import providers
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from utils import DATA_DIR, CSV_PATH, JSON_PATH, KEYWORDS
+import providers
 
 PROVIDERS = [
-    providers.fetch_linkareer,
-    providers.fetch_campuspick,
+    providers.fetch_wevity,
+    providers.fetch_all_contest,
+    providers.fetch_contestkorea,
+    # providers.fetch_thinkcontest,  # JavaScript 렌더링 필요로 비활성화
+    # providers.fetch_linkareer,  # 현재 서버 문제로 비활성화
+    # providers.fetch_campuspick,  # JavaScript 렌더링 필요로 비활성화
 ]
 
 def filter_by_keywords(contests):
