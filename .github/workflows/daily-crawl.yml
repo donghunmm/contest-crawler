@@ -6,6 +6,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch: # 수동 실행 가능
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   crawl-and-notify:
     runs-on: ubuntu-latest
@@ -103,9 +107,11 @@ with open('email_content.txt', 'w', encoding='utf-8') as f:
         
     - name: Commit and push results
       if: steps.check_data.outputs.data_exists == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add data/
         git commit -m "Update contest data - $(date +'%Y-%m-%d %H:%M:%S')" || exit 0
-        git push || exit 0
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git || exit 0

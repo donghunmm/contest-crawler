@@ -9,8 +9,9 @@ import providers
 
 PROVIDERS = [
     providers.fetch_wevity,
-    providers.fetch_all_contest,
+    providers.fetch_onbid,
     providers.fetch_contestkorea,
+    # providers.fetch_all_contest,  # 도메인 접근 불가로 비활성화
     # providers.fetch_thinkcontest,  # JavaScript 렌더링 필요로 비활성화
     # providers.fetch_linkareer,  # 현재 서버 문제로 비활성화
     # providers.fetch_campuspick,  # JavaScript 렌더링 필요로 비활성화
